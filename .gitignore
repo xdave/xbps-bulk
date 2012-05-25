@@ -1,0 +1,5 @@
+Makefile
+tobuild
+built
+pkgs.txt
+repo-checkvers.txt
