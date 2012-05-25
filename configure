@@ -16,7 +16,17 @@ for p in `cat pkgs.txt`; do
 done
 
 echo "\033[1;32mLoading xbps-src configuration..."
-. /etc/xbps/xbps-src.conf
+CFG=
+if [ -f "/etc/xbps/xbps-src.conf" ]; then
+	CFG="/etc/xbps/xbps-src.conf"
+elif [ -f "/usr/local/etc/xbps/xbps-src.conf" ]; then
+	CFG="/usr/local/etc/xbps/xbps-src.conf"
+else
+	echo "ERROR: You need to have xbps-src installed."
+	echo "Get it from https://github.com/xtraeme/xbps-src"
+	exit 1;
+fi
+. $CFG
 SRCPKGS=$XBPS_DISTDIR/srcpkgs
 _TOBUILD="`find tobuild -type f`"
 TOBUILD=
