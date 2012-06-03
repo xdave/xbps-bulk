@@ -73,6 +73,7 @@ echo "built/%: tobuild/%"					>> Makefile
 echo "\t@echo \"\033[1;32m[xbps-src]\t\${@F}\""			>> Makefile
 echo "\t@xbps-src build-pkg \${@F}"				>> Makefile
 echo "\t@touch \$@\n"						>> Makefile
+echo "\t@rm tobuild/\${@F}"					>> Makefile
 
 echo "\033[1;32mFinding and adding dependencies..."
 echo "# Dependencies"						>> Makefile
