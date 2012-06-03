@@ -1,0 +1,38 @@
+This builds a set of packages from xbps-packages using xbps-src -- while taking
+into account inter-dependencies between all of the packages in the set.
+
+It gets a list of pkgs that need to be rebuilt from running:
+
+	xbps-src repo-checkvers
+
+Then, it finds all of the dependencies of each package in the list and adds
+Make rules for them, if those dependencies are in the same list.
+
+To use it, type:
+
+	./configure
+
+This generates a 'repo-checkvers.txt' file with the output of 'repo-checkvers'.
+
+If you run this again, it will have no effect until you delete that txt file, or
+change the repo-checkvers.txt file to have a different set than it did before.
+
+Builds can be interrupted and resumed, because a full list of packages that need
+to be built are contained in small files that Make looks for to satisfy its
+targets in the generated "tobuild" subdirectory.  Once a package has been built,
+a small file is created into the "built" subdirectory in order to tell Make not
+to build it again.
+
+Every time you run './configure', those two subdirectories are reset, so you
+cannot interrupt a build, run './configure', and resume properly.  In order to
+resume a build in these kinds of circumstances, you must completely remove
+'repo-checkvers.txt', so that ./configure can detect what has already been
+built.
+
+After you have the set that you want, a 'Makefile' is generated.  To begin
+building, type 'make'.
+
+See the end of the Makefile for additional targets other than 'all'.
+
+Questions?  Ask at #xbps on irc.freenode.net!  NO WARRANITES!
+
