@@ -102,4 +102,4 @@ echo "\t@rm -f built/*"						>> Makefile
 echo "\t@echo \"[Clean]\"\n"					>> Makefile
 echo ".PHONY: all clean"					>> Makefile
 
-echo "\033[1;32m'Makefile' generated."
+echo "\033[1;32m'Makefile' generated.\033[m"
