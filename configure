@@ -17,7 +17,9 @@ done
 
 echo "\033[1;32mLoading xbps-src configuration..."
 CFG=
-if [ -f "/etc/xbps/xbps-src.conf" ]; then
+if [ -f "$1" ]; then
+	CFG="$1"
+elif [ -f "/etc/xbps/xbps-src.conf" ]; then
 	CFG="/etc/xbps/xbps-src.conf"
 elif [ -f "/usr/local/etc/xbps/xbps-src.conf" ]; then
 	CFG="/usr/local/etc/xbps/xbps-src.conf"
