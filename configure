@@ -69,6 +69,8 @@ echo "TOBUILD := \$(patsubst %,tobuild/%,\$(PKGS))"		>> Makefile
 echo "BUILT := \$(patsubst tobuild/%,built/%,\$(TOBUILD))\n"	>> Makefile
 echo "all: \$(BUILT)"						>> Makefile
 echo "\t@echo \"\033[1;32m[Done]\"\n"				>> Makefile
+echo "print_pkgs:"						>> Makefile
+echo "\t@echo \$(PKGS)\n"					>> Makefile
 echo "built/%: tobuild/%"					>> Makefile
 echo "\t@echo \"\033[1;32m[xbps-src]\t\${@F}\""			>> Makefile
 echo "\t@xbps-src build-pkg \${@F}"				>> Makefile
@@ -100,6 +102,6 @@ done
 echo "clean:"							>> Makefile
 echo "\t@rm -f built/*"						>> Makefile
 echo "\t@echo \"[Clean]\"\n"					>> Makefile
-echo ".PHONY: all clean"					>> Makefile
+echo ".PHONY: all print_pkgs clean"				>> Makefile
 
 echo "\033[1;32m'Makefile' generated.\033[m"
