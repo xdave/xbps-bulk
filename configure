@@ -1,20 +1,4 @@
 #!/bin/sh
-
-echo "\033[1;32mGetting list of updates, please wait..."
-if [ -f "repo-checkvers.txt" ]; then
-	echo "\033[1;32m(using cache; rm 'repo-checkvers.txt' to recheck)..."
-else
-	xbps-src repo-checkvers | tee repo-checkvers.txt
-fi
-cat repo-checkvers.txt | awk '{ print $2 }' > pkgs.txt
-
-echo "\033[1;32mCreating source targets..."
-rm -rf tobuild built
-mkdir -p tobuild built
-for p in `cat pkgs.txt`; do
-	touch tobuild/$p
-done
-
 echo "\033[1;32mLoading xbps-src configuration..."
 CFG=
 if [ -f "$1" ]; then
@@ -30,6 +14,22 @@ else
 fi
 . $CFG
 SRCPKGS=$XBPS_DISTDIR/srcpkgs
+
+echo "\033[1;32mGetting list of updates, please wait..."
+if [ -f "repo-checkvers.txt" ]; then
+	echo "\033[1;32m(using cache; rm 'repo-checkvers.txt' to recheck)..."
+else
+	xbps-src -c $CFG repo-checkvers | tee repo-checkvers.txt
+fi
+cat repo-checkvers.txt | awk '{ print $2 }' > pkgs.txt
+
+echo "\033[1;32mCreating source targets..."
+rm -rf tobuild built
+mkdir -p tobuild built
+for p in `cat pkgs.txt`; do
+	touch tobuild/$p
+done
+
 _TOBUILD="`find tobuild -type f`"
 TOBUILD=
 
@@ -75,7 +75,7 @@ echo "print_pkgs:"						>> Makefile
 echo "\t@echo \$(PKGS)\n"					>> Makefile
 echo "built/%: tobuild/%"					>> Makefile
 echo "\t@echo \"\033[1;32m[xbps-src]\t\${@F}\""			>> Makefile
-echo "\t@xbps-src build-pkg \${@F}"				>> Makefile
+echo "\t@xbps-src -c $CFG build-pkg \${@F}"			>> Makefile
 echo "\t@touch \$@"						>> Makefile
 echo "\t@rm tobuild/\${@F}\n"					>> Makefile
 
@@ -83,7 +83,7 @@ echo "\033[1;32mFinding and adding dependencies..."
 echo "# Dependencies"						>> Makefile
 for p in $TOBUILD; do
 	sedcmd="s|[<>].*\$||g"
-	_deps="`xbps-src show-deps $p build | sed -e \"$sedcmd\"`"
+	_deps="`xbps-src -c $CFG show-deps $p build | sed -e \"$sedcmd\"`"
 	deps=
 	for d in $_deps; do
 		found=0
