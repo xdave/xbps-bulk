@@ -19,7 +19,7 @@ echo "\033[1;32mGetting list of updates, please wait..."
 if [ -f "repo-checkvers.txt" ]; then
 	echo "\033[1;32m(using cache; rm 'repo-checkvers.txt' to recheck)..."
 else
-	xbps-src -c $CFG repo-checkvers | tee repo-checkvers.txt
+	xbps-src -c $CFG repo-checkvers | grep pkgname | tee repo-checkvers.txt
 fi
 cat repo-checkvers.txt | awk '{ print $2 }' > pkgs.txt
 
