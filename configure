@@ -19,9 +19,10 @@ echo "\033[1;32mGetting list of updates, please wait..."
 if [ -f "repo-checkvers.txt" ]; then
 	echo "\033[1;32m(using cache; rm 'repo-checkvers.txt' to recheck)..."
 else
-	sh -x `which xbps-src` -c $CFG repo-checkvers | tee repo-checkvers.txt
+	echo "this_line_is_here_to_test_something" | tee repo-checkvers.txt
+	xbps-src -c $CFG repo-checkvers  | tee -a repo-checkvers.txt
 fi
-cat repo-checkvers.txt | grep pkgname | awk '{ print $2 }' > pkgs.txt
+cat repo-checkvers.txt | grep repover | awk '{ print $2 }' > pkgs.txt
 
 echo "\033[1;32mCreating source targets..."
 rm -rf tobuild built
