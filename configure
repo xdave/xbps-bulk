@@ -21,8 +21,9 @@ if [ -f "repo-checkvers.txt" ]; then
 else
 	echo "Progress will not be shown. Please wait...."
 	xbps-src -c $CFG repo-checkvers > repo-checkvers.txt
+	echo "end_of_file" >> repo-checkvers.txt
 fi
-cat repo-checkvers.txt | grep repover | awk '{ print $2 }' > pkgs.txt
+grep repover repo-checkvers.txt | awk '{ print $2 }' > pkgs.txt
 
 echo "Creating source targets..."
 rm -rf tobuild built
