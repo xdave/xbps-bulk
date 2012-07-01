@@ -21,6 +21,7 @@ if [ -f "repo-checkvers.txt" ]; then
 else
 	echo "Progress will not be shown. Please wait...."
 	xbps-src -c $CFG repo-checkvers > repo-checkvers.txt
+	[ $? -gt 0 ] && exit 1
 	echo "end_of_file" >> repo-checkvers.txt
 fi
 grep repover repo-checkvers.txt | awk '{ print $2 }' > pkgs.txt
@@ -109,3 +110,4 @@ echo "\t@echo \"[Clean]\"\n"					>> Makefile
 echo ".PHONY: all print_pkgs clean"				>> Makefile
 
 echo "'Makefile' generated."
+exit 0
