@@ -9,6 +9,6 @@ for p in $PKGS; do
 	if [ -n "$f" ]; then
 		dir=$(dirname $f)
 		pkg=$(basename $dir)
-		echo "- $pkg" >> repo-checkvers.txt
+		echo "- $pkg repover" >> repo-checkvers.txt
 	fi
 done
