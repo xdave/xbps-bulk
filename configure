@@ -19,7 +19,8 @@ echo "Getting list of updates, please wait..."
 if [ -f "repo-checkvers.txt" ]; then
 	echo "(using cache; rm 'repo-checkvers.txt' to recheck)..."
 else
-	xbps-src -c $CFG repo-checkvers  | tee repo-checkvers.txt
+	echo "Progress will not be shown. Please wait...."
+	xbps-src -c $CFG repo-checkvers > repo-checkvers.txt
 fi
 cat repo-checkvers.txt | grep repover | awk '{ print $2 }' > pkgs.txt
 
