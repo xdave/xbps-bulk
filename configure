@@ -35,7 +35,9 @@ echo "Creating source targets..."
 rm -rf tobuild built
 mkdir -p tobuild built
 for p in `cat pkgs.txt`; do
-	touch tobuild/$p
+	if [ -f "$SRCPKGS/$p/template" ]; then
+		touch tobuild/$p
+	fi
 done
 
 _TOBUILD="`find tobuild -type f`"
