@@ -24,7 +24,7 @@ if [ -f "repo-checkvers.txt" ]; then
 	echo "(using cache; rm 'repo-checkvers.txt' to recheck)..."
 else
 	echo "Progress will not be shown. Please wait...."
-	xbps-src -D $DISTDIR -m $MASTERDIR -H $HOSTDIR \
+	xbps-src -L -D $DISTDIR -m $MASTERDIR -H $HOSTDIR \
 		repo-checkvers > repo-checkvers.txt
 	[ $? -gt 0 ] && exit 1
 	echo "end_of_file" >> repo-checkvers.txt
@@ -85,7 +85,7 @@ echo "print_pkgs:"						>> Makefile
 echo "\t@echo \$(PKGS)\n"					>> Makefile
 echo "built/%: tobuild/%"					>> Makefile
 echo "\t@echo \"[xbps-src]\t\${@F}\""				>> Makefile
-echo "\t@xbps-src -D $DISTDIR -m $MASTERDIR -H $HOSTDIR build-pkg \${@F}"	>> Makefile
+echo "\t@xbps-src -L -D $DISTDIR -m $MASTERDIR -H $HOSTDIR build-pkg \${@F}"	>> Makefile
 echo "\t@touch \$@"						>> Makefile
 echo "\t@rm tobuild/\${@F}\n"					>> Makefile
 
@@ -93,7 +93,7 @@ echo "Finding and adding dependencies..."
 echo "# Dependencies"						>> Makefile
 for p in $TOBUILD; do
 	sedcmd="s|[<>].*\$||g"
-	_deps="`xbps-src -D $DISTDIR show-deps $p build | sed -e \"$sedcmd\"`"
+	_deps="`xbps-src -L -D $DISTDIR show-deps $p build | sed -e \"$sedcmd\"`"
 	deps=
 	for d in $_deps; do
 		found=0
