@@ -1,12 +1,12 @@
 #!/bin/sh
 
+printf "INFO: Finding pkgnames from changed files...\n"
+
 __PKGS="${*}"
 XBPS_SRCPKGDIR="srcpkgs"
 
-rm -f repo-checkvers.txt
-touch repo-checkvers.txt
-
 for __p in ${__PKGS}; do
+	touch repo-checkvers.txt
 	__f=$(echo ${__p} | grep srcpkgs)
 	if [ -n "${__f}" ]; then
 		__pkg=$(echo ${__f} | awk -F/ '{print $2}')
@@ -22,4 +22,3 @@ for __p in ${__PKGS}; do
 		fi
 	fi
 done
-cat repo-checkvers.txt

@@ -1,37 +1,150 @@
 #!/bin/sh
-#echo "Loading xbps-src configuration..."
-#CFG=
-#if [ -f "$1" ]; then
-#	CFG="$1"
-#elif [ -f "/etc/xbps/xbps-src.conf" ]; then
-#	CFG="/etc/xbps/xbps-src.conf"
-#elif [ -f "/usr/local/etc/xbps/xbps-src.conf" ]; then
-#	CFG="/usr/local/etc/xbps/xbps-src.conf"
-#else
-#	echo "ERROR: You need to have xbps-src installed."
-#	echo "Get it from https://github.com/xtraeme/xbps-src"
-#	exit 1;
-#fi
-#. $CFG
-#SRCPKGS=$XBPS_DISTDIR/srcpkgs
-DISTDIR=$1
-MASTERDIR=$2
-HOSTDIR=$3
+## TODO: have ability to set stuff on cmdline for xbps-repo-checkvers, cfg, etc
+VERSION=0.0.0
+CFG=
+CFG_CMDLINE=
+DISTDIR=
+MASTERDIR=
+HOSTDIR=
+SRCPKGS=
+_TEMPLATES=
+TEMPLATES=
+XSC=
+_append=""
+RCV=`which xbps-repo-checkvers`
+RCV_F="repo-checkvers.txt"
+TOBUILD=
+_TOBUILD=
+USAGE="Usage: $0 [-vcdmh arg] [-t \"arg1 [arg2 ...]\" ]"
+
+[ -f $RCV ] || {
+	printf "ERROR: The 'xbps-repo-checkvers' was not found in the PATH.\n"
+	printf "Please install it with:\n\n"
+	printf "\t $ xbps-bin -Sy install xbps-src-utils\n\n"
+	printf "... and then run this thing again. :)\n"
+	exit 1
+}
+
+while getopts vc:d:m:h:t: OPT; do
+	case "$OPT" in
+		v)
+			printf "xbps-bulk version $VERSION\n"
+			exit 0
+			;;
+		c)
+			[ -f $OPTARG ] || {
+				printf "ERROR: Cannot find config file "
+				printf "'%s': No such file or directory.\n" \
+					"$OPTARG"
+				exit 1
+			}
+			CFG="$OPTARG"
+			;;
+		d)
+			[ -d $OPTARG ] || {
+				printf "ERROR: Cannot find DISTDIR "
+				printf "'%s': No such file or directory.\n" \
+					"$OPTARG"
+				exit 1
+			}
+			DISTDIR="$OPTARG"
+			;;
+		m)
+			[ -d $OPTARG ] || {
+				printf "ERROR: Cannot find MASTERDIR "
+				printf "'%s': No such file or directory.\n" \
+					"$OPTARG"
+				exit 1
+			}
+			MASTERDIR="$OPTARG"
+			;;
+		h)
+			[ -d $OPTARG ] || {
+				printf "ERROR: Cannot find HOSTDIR "
+				printf "'%s': No such file or directory.\n" \
+					"$OPTARG"
+				exit 1
+			}
+			HOSTDIR="$OPTARG"
+			;;
+		t)
+			for t in $OPTARG; do
+				printf "INFO: Adding %s to task.\n" "$t"
+			done
+			_TEMPLATES=$OPTARG
+			;;
+		\?)
+			printf "%s\n" "$USAGE"
+			exit 1
+			;;
+	esac
+done
+
+if [ -z "$CFG" ]; then
+	if [ -f "/etc/xbps/xbps-src.conf" ]; then
+		CFG="/etc/xbps/xbps-src.conf"
+	elif [ -f "/usr/local/etc/xbps/xbps-src.conf" ]; then
+		CFG="/usr/local/etc/xbps/xbps-src.conf"
+	else
+		printf "WARNING: No xbps-src configuration "
+		printf "found in the default directories!\n"
+	fi
+fi
+
+test $CFG && {
+	printf "INFO: Loading xbps-src config '$CFG' ...\n"
+	. $CFG
+	CFG_CMDLINE="-c $CFG"
+	test $DISTDIR   || DISTDIR=$XBPS_DISTDIR
+	test $MASTERDIR || MASTERDIR=$XBPS_MASTERDIR
+	test $HOSTDIR   || HOSTDIR=$XBPS_HOSTDIR
+	test $SRCPKGS   || SRCPKGS=$XBPS_DISTDIR/srcpkgs
+
+	# if its not defined on cmd line OR in config file.
+	test $HOSTDIR || {
+		HOSTDIR=$MASTERDIR/host
+	}
+}
+
+# NO config file, and no cmdline arguments
+for d in $DISTDIR $MASTERDIR $HOSTDIR ; do
+	if [ ! -d $d ]; then
+		printf "ERROR: You have no xbps-src configuration file AND you "
+		printf "have not provided any info manually via a command-line "
+		printf "switch! Aborting.\n"
+		printf "$USAGE\n"
+		exit 1
+	else
+		printf "INFO: Using '%s'\n" "$d"
+	fi
+done
+
 SRCPKGS=$DISTDIR/srcpkgs
 
-echo "Getting list of updates, please wait..."
-if [ -f "repo-checkvers.txt" ]; then
-	echo "(using cache; rm 'repo-checkvers.txt' to recheck)..."
-else
-	echo "Progress will not be shown. Please wait...."
-	xbps-src -L -D $DISTDIR -m $MASTERDIR -H $HOSTDIR \
-		repo-checkvers > repo-checkvers.txt
-	[ $? -gt 0 ] && exit 1
-	echo "end_of_file" >> repo-checkvers.txt
-fi
-grep repover repo-checkvers.txt | awk '{ print $2 }' > pkgs.txt
+XSC="xbps-src -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
 
-echo "Creating source targets..."
+printf "INFO: Getting list of updates, please wait...\n"
+
+test "${_TEMPLATES}" && {
+	touch $RCV_F
+	for t in ${_TEMPLATES}; do
+		_sedcmd1="s|^srcpkgs/||g"
+		_sedcmd2="s|/.*\$||g"
+		_pkg="`echo $t | sed -e \"${_sedcmd1}\" -e \"${_sedcmd2}\"`"
+		TEMPLATES="$TEMPLATES ${_pkg}"
+		printf "pkgname: ${_pkg} [added from cmdline]\n" | tee -a $RCV_F
+	done
+}
+
+if [ -f $RCV_F ]; then
+	_append="-a"
+	printf "INFO: Appending to existing '$RCV_F' file...\n"
+fi
+
+$RCV ${SRCPKGS} | tee ${_append} $RCV_F
+grep pkgname $RCV_F | awk '{ print $2 }' > pkgs.txt
+
+printf "INFO: Creating source targets...\n"
 rm -rf tobuild built
 mkdir -p tobuild built
 for p in `cat pkgs.txt`; do
@@ -41,7 +154,6 @@ for p in `cat pkgs.txt`; do
 done
 
 _TOBUILD="`find tobuild -type f`"
-TOBUILD=
 
 concat() {
 	local found=0
@@ -65,35 +177,36 @@ getlink() {
 	echo $p
 }
 
-echo "Generating a proper list (without subpkgs)..."
+printf "INFO: Generating a proper list (without subpkgs)...\n"
 for tb in $_TOBUILD; do
 		concat "`getlink $tb`"
 done
 
-echo "Removing old Makefile (if any)..."
-rm -f Makefile
+printf "INFO: Removing old Makefile (if any)...\n"
+[ -f Makefile ] && rm -f Makefile
 touch Makefile
 
-echo "Generating standard targets..."
-echo "# Generated by configure, do not modify.\n"		>> Makefile
-echo "PKGS := $TOBUILD"						>> Makefile
-echo "TOBUILD := \$(patsubst %,tobuild/%,\$(PKGS))"		>> Makefile
-echo "BUILT := \$(patsubst tobuild/%,built/%,\$(TOBUILD))\n"	>> Makefile
-echo "all: \$(BUILT)"						>> Makefile
-echo "\t@echo \"[Done]\"\n"					>> Makefile
-echo "print_pkgs:"						>> Makefile
-echo "\t@echo \$(PKGS)\n"					>> Makefile
-echo "built/%: tobuild/%"					>> Makefile
-echo "\t@echo \"[xbps-src]\t\${@F}\""				>> Makefile
-echo "\t@xbps-src -L -D $DISTDIR -m $MASTERDIR -H $HOSTDIR build-pkg \${@F}"	>> Makefile
-echo "\t@touch \$@"						>> Makefile
-echo "\t@rm tobuild/\${@F}\n"					>> Makefile
 
-echo "Finding and adding dependencies..."
-echo "# Dependencies"						>> Makefile
+printf "INFO: Generating standard targets...\n"
+printf "# Generated by configure, do not modify.\n\n"		>> Makefile
+printf "PKGS = $TOBUILD\n"					>> Makefile
+printf "TOBUILD = \$(patsubst %%,tobuild/%%,\$(PKGS))\n"	>> Makefile
+printf "BUILT = \$(patsubst tobuild/%%,built/%%,\$(TOBUILD))\n\n"	>> Makefile
+printf "all: \$(BUILT)\n"					>> Makefile
+printf "\t@echo \"[Done]\"\n\n"					>> Makefile
+printf "print_pkgs:\n"						>> Makefile
+printf "\t@echo \$(PKGS)\n\n"					>> Makefile
+printf "built/%%: tobuild/%%\n"					>> Makefile
+printf "\t@echo \"[xbps-src]\t\${@F}\"\n"			>> Makefile
+printf "\t@$XSC build-pkg \${@F}\n"				>> Makefile
+printf "\t@touch \$@\n"						>> Makefile
+printf "\t@rm tobuild/\${@F}\n\n"				>> Makefile
+
+printf "INFO: Finding and adding dependencies...\n"
+printf "# Dependencies\n"					>> Makefile
 for p in $TOBUILD; do
 	sedcmd="s|[<>].*\$||g"
-	_deps="`xbps-src -L -D $DISTDIR show-deps $p build | sed -e \"$sedcmd\"`"
+	_deps="`$XSC show-deps $p build | sed -e \"$sedcmd\"`"
 	deps=
 	for d in $_deps; do
 		found=0
@@ -108,13 +221,15 @@ for p in $TOBUILD; do
 			deps="$deps built/$realdep"
 		fi
 	done
-	echo "built/$p: $deps\n"				>> Makefile
+	printf "built/$p: $deps\n"				>> Makefile
 done
 
-echo "clean:"							>> Makefile
-echo "\t@rm -f built/*"						>> Makefile
-echo "\t@echo \"[Clean]\"\n"					>> Makefile
-echo ".PHONY: all print_pkgs clean"				>> Makefile
+printf "\n"							>> Makefile
+printf "clean:\n"						>> Makefile
+printf "\t@rm -f built/*\n"					>> Makefile
+printf "\t@echo \"[Clean]\"\n\n"				>> Makefile
+printf ".PHONY: all print_pkgs clean\n"				>> Makefile
 
-echo "'Makefile' generated."
+printf "INFO: 'Makefile' generated.\n"
+printf "INFO: Type 'make'\n"
 exit 0
