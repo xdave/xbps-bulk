@@ -1,6 +1,7 @@
 #!/bin/sh
 
 __PKGS="${*}"
+XBPS_SRCPKGDIR="srcpkgs"
 
 rm -f repo-checkvers.txt
 touch repo-checkvers.txt
