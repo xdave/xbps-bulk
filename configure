@@ -68,6 +68,8 @@ while getopts vc:d:m:h:t: OPT; do
 			HOSTDIR="$OPTARG"
 			;;
 		t)
+			_sedcmd="s|\"||g"
+			OPTARG=`echo $OPTARG | sed -e "${_sedcmd}"`
 			for t in $OPTARG; do
 				printf "INFO: Adding %s to task.\n" "$t"
 			done
@@ -120,6 +122,7 @@ for d in $DISTDIR $MASTERDIR $HOSTDIR ; do
 done
 
 SRCPKGS=$DISTDIR/srcpkgs
+XBPS_SRCPKGDIR=$SRCPKGS
 
 XSC="xbps-src -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
 
@@ -128,11 +131,15 @@ printf "INFO: Getting list of updates, please wait...\n"
 test "${_TEMPLATES}" && {
 	touch $RCV_F
 	for t in ${_TEMPLATES}; do
-		_sedcmd1="s|^srcpkgs/||g"
-		_sedcmd2="s|/.*\$||g"
-		_pkg="`echo $t | sed -e \"${_sedcmd1}\" -e \"${_sedcmd2}\"`"
-		TEMPLATES="$TEMPLATES ${_pkg}"
-		printf "pkgname: ${_pkg} [added from cmdline]\n" | tee -a $RCV_F
+		_pkg="`echo $t | awk -F/ '{ print $2 }'`"
+		. "${SRCPKGS}/${_pkg}/template"
+		_ver="${version}_${revision}"
+		_repover="`xbps-repo show -oversion ${_pkg}`"
+		xbps-uhelper cmpver ${_repover} ${_ver} > /dev/null 2>&1
+		if [ ! $? -eq 0 ]; then
+			TEMPLATES="$TEMPLATES ${_pkg}"
+			printf "pkgname: ${_pkg} [added from cmdline]\n" | tee -a $RCV_F
+		fi
 	done
 }
 
