@@ -131,12 +131,10 @@ printf "INFO: Getting list of updates, please wait...\n"
 test "${_TEMPLATES}" && {
 	touch $RCV_F
 	for t in ${_TEMPLATES}; do
-		echo "initial TEMPLATES = $TEMPLATES"
 		_pkg="`echo $t | grep srcpkgs | awk -F/ '{ print $2 }'`"
 		test ${_pkg} || continue
 		_found=`echo "$TEMPLATES" | grep -q "${_pkg}"`
 		[ $? -eq 0 ] && continue
-		echo "after TEMPLATES = $TEMPLATES"
 		. "${SRCPKGS}/${_pkg}/template"
 		_ver="${version}_${revision}"
 		_repover="`xbps-repo show -oversion ${_pkg}`"
