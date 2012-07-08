@@ -7,15 +7,13 @@ DISTDIR=
 MASTERDIR=
 HOSTDIR=
 SRCPKGS=
-_TEMPLATES=
-TEMPLATES=""
 XSC=
 _append=""
-RCV=`which xbps-repo-checkvers`
+RCV=`which xbps-repo-checkvers 2>/dev/null`
 RCV_F="repo-checkvers.txt"
 TOBUILD=
 _TOBUILD=
-USAGE="Usage: $0 [-vcdmh arg] [-t \"arg1 [arg2 ...]\" ]"
+USAGE="Usage: $0 [-vcdmh arg]\" ]"
 
 [ -f $RCV ] || {
 	printf "ERROR: The 'xbps-repo-checkvers' was not found in the PATH.\n"
@@ -25,7 +23,7 @@ USAGE="Usage: $0 [-vcdmh arg] [-t \"arg1 [arg2 ...]\" ]"
 	exit 1
 }
 
-while getopts vc:d:m:h:t: OPT; do
+while getopts vc:d:m:h: OPT; do
 	case "$OPT" in
 		v)
 			printf "xbps-bulk version $VERSION\n"
@@ -66,14 +64,6 @@ while getopts vc:d:m:h:t: OPT; do
 				exit 1
 			}
 			HOSTDIR="$OPTARG"
-			;;
-		t)
-			_sedcmd="s|\"||g"
-			OPTARG=`echo $OPTARG | sed -e "${_sedcmd}"`
-			for t in $OPTARG; do
-				printf "INFO: Adding %s to task.\n" "$t"
-			done
-			_TEMPLATES=$OPTARG
 			;;
 		\?)
 			printf "%s\n" "$USAGE"
@@ -127,24 +117,6 @@ XBPS_SRCPKGDIR=$SRCPKGS
 XSC="xbps-src -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
 
 printf "INFO: Getting list of updates, please wait...\n"
-
-test "${_TEMPLATES}" && {
-	touch $RCV_F
-	for t in ${_TEMPLATES}; do
-		_pkg="`echo $t | grep srcpkgs | awk -F/ '{ print $2 }'`"
-		test ${_pkg} || continue
-		_found=`echo "$TEMPLATES" | grep -q "${_pkg}"`
-		[ $? -eq 0 ] && continue
-		. "${SRCPKGS}/${_pkg}/template"
-		_ver="${version}_${revision}"
-		_repover="`xbps-repo show -oversion ${_pkg}`"
-		xbps-uhelper cmpver ${_repover} ${_ver} > /dev/null 2>&1
-		if [ ! $? -eq 0 ]; then
-			TEMPLATES="${TEMPLATES} ${_pkg}"
-			printf "pkgname: ${_pkg} [added from cmdline]\n" | tee -a $RCV_F
-		fi
-	done
-}
 
 [ -f $RCV_F ] && _append="-a"
 $RCV ${SRCPKGS} | tee ${_append} $RCV_F
