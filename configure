@@ -84,7 +84,7 @@ if [ -z "$CFG" ]; then
 fi
 
 test $CFG && {
-	printf "INFO: Loading xbps-src config '$CFG' ...\n"
+	printf "INFO: Loading xbps-src config '$CFG'...\n"
 	. $CFG
 	CFG_CMDLINE="-c $CFG"
 	test $DISTDIR   || DISTDIR=$XBPS_DISTDIR
@@ -93,17 +93,15 @@ test $CFG && {
 	test $SRCPKGS   || SRCPKGS=$XBPS_DISTDIR/srcpkgs
 
 	# if its not defined on cmd line OR in config file.
-	test $HOSTDIR || {
-		HOSTDIR=$MASTERDIR/host
-	}
+	test $HOSTDIR   || HOSTDIR=$MASTERDIR/host
 }
 
 # NO config file, and no cmdline arguments
 for d in $DISTDIR $MASTERDIR $HOSTDIR ; do
-	if [ ! -d $d ]; then
-		printf "ERROR: You have no xbps-src configuration file AND you "
-		printf "have not provided any info manually via a command-line "
-		printf "switch! Aborting.\n"
+	if [ ! $d ]; then
+		printf "ERROR: You have no xbps-src configuration file AND you\n"
+		printf "have not provided any info manually via command-line\n"
+		printf "switch(s)! Aborting.\n"
 		printf "$USAGE\n"
 		exit 1
 	else
@@ -117,6 +115,7 @@ XBPS_SRCPKGDIR=$SRCPKGS
 XSC="xbps-src -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
 
 printf "INFO: Getting list of updates, please wait...\n"
+printf "INFO: Running '$RCV'...\n"
 
 [ -f $RCV_F ] && _append="-a"
 $RCV ${SRCPKGS} | tee ${_append} $RCV_F
