@@ -37,6 +37,7 @@ while getopts vc:d:m:h: OPT; do
 				exit 1
 			}
 			CFG="$OPTARG"
+			shift; shift
 			;;
 		d)
 			[ -d $OPTARG ] || {
@@ -46,6 +47,7 @@ while getopts vc:d:m:h: OPT; do
 				exit 1
 			}
 			DISTDIR="$OPTARG"
+			shift; shift
 			;;
 		m)
 			[ -d $OPTARG ] || {
@@ -55,6 +57,7 @@ while getopts vc:d:m:h: OPT; do
 				exit 1
 			}
 			MASTERDIR="$OPTARG"
+			shift; shift
 			;;
 		h)
 			[ -d $OPTARG ] || {
@@ -64,6 +67,7 @@ while getopts vc:d:m:h: OPT; do
 				exit 1
 			}
 			HOSTDIR="$OPTARG"
+			shift; shift
 			;;
 		\?)
 			printf "%s\n" "$USAGE"
@@ -114,11 +118,13 @@ XBPS_SRCPKGDIR=$SRCPKGS
 
 XSC="xbps-src -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
 
+RCV_CMD_LINE="$RCV --distdir=${DISTDIR} ${*}"
 printf "INFO: Getting list of updates, please wait...\n"
-printf "INFO: Running '$RCV'...\n"
+printf "INFO: Running '$RCV_CMD_LINE'...\n"
 
 [ -f $RCV_F ] && _append="-a"
-$RCV ${SRCPKGS} | tee ${_append} $RCV_F
+#$RCV --distdir=${DISTDIR} ${*} | tee ${_append} $RCV_F
+$RCV_CMD_LINE | tee ${_append} $RCV_F
 grep pkgname $RCV_F | awk '{ print $2 }' > pkgs.txt
 
 printf "INFO: Creating source targets...\n"
