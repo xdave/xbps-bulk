@@ -14,7 +14,7 @@ for __p in ${__PKGS}; do
 			. "srcpkgs/${__pkg}/template"
 			__ver="${version}"
 			__ver="${__ver}_${revision}"
-			__repover="$(xbps-repo show -oversion ${__pkg})"
+			__repover="$(xbps-query -R -pversion ${__pkg})"
 			xbps-uhelper cmpver ${__repover} ${__ver} > /dev/null 2>&1
 			if [ ! $? -eq 0 ]; then
 				echo "- ${__pkg} repover" >> repo-checkvers.txt

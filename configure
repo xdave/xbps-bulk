@@ -189,7 +189,7 @@ printf "INFO: Finding and adding dependencies...\n"
 printf "# Dependencies\n"					>> Makefile
 for p in $TOBUILD; do
 	sedcmd="s|[<>].*\$||g"
-	_deps="`$XSC show-deps $p build | sed -e \"$sedcmd\"`"
+	_deps="`$XSC show-build-deps $p | sed -e \"$sedcmd\"`"
 	deps=
 	for d in $_deps; do
 		found=0
