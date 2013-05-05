@@ -31,6 +31,7 @@ while getopts a:Cc:d:m:h:v OPT; do
 	a)
 		CFG_CROSS="-a $OPTARG"
 		case "$OPTARG" in
+			native) unset CFG_CROSS CROSS_ARCH;;
 			arm*) CROSS_ARCH=armv6l;;
 			*) CROSS_ARCH="$OPTARG";;
 		esac
