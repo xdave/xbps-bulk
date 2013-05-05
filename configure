@@ -1,8 +1,11 @@
 #!/bin/sh
 ## TODO: have ability to set stuff on cmdline for xbps-repo-checkvers, cfg, etc
 VERSION=0.0.0
+
 CFG=
 CFG_CMDLINE=
+CFG_CROSS=
+CROSS_ARCH=
 DISTDIR=
 MASTERDIR=
 HOSTDIR=
@@ -13,67 +16,76 @@ RCV=`which xbps-repo-checkvers 2>/dev/null`
 RCV_F="repo-checkvers.txt"
 TOBUILD=
 _TOBUILD=
-USAGE="Usage: $0 [-vcdmh arg]\" ]"
+USAGE="Usage: $0 [-a cross-arch] [-C] [c|d|m|h arg]\" ]"
 
 [ -f $RCV ] || {
 	printf "ERROR: The 'xbps-repo-checkvers' was not found in the PATH.\n"
 	printf "Please install it with:\n\n"
-	printf "\t $ xbps-bin -Sy install xbps-src-utils\n\n"
+	printf "\t $ xbps-install -Sy install xbps-src-utils\n\n"
 	printf "... and then run this thing again. :)\n"
 	exit 1
 }
 
-while getopts vc:d:m:h: OPT; do
+while getopts a:Cc:d:m:h:v OPT; do
 	case "$OPT" in
-		v)
-			printf "xbps-bulk version $VERSION\n"
-			exit 0
-			;;
-		c)
-			[ -f $OPTARG ] || {
-				printf "ERROR: Cannot find config file "
-				printf "'%s': No such file or directory.\n" \
-					"$OPTARG"
-				exit 1
-			}
-			CFG="$OPTARG"
-			shift; shift
-			;;
-		d)
-			[ -d $OPTARG ] || {
-				printf "ERROR: Cannot find DISTDIR "
-				printf "'%s': No such file or directory.\n" \
-					"$OPTARG"
-				exit 1
-			}
-			DISTDIR="$OPTARG"
-			shift; shift
-			;;
-		m)
-			[ -d $OPTARG ] || {
-				printf "ERROR: Cannot find MASTERDIR "
-				printf "'%s': No such file or directory.\n" \
-					"$OPTARG"
-				exit 1
-			}
-			MASTERDIR="$OPTARG"
-			shift; shift
-			;;
-		h)
-			[ -d $OPTARG ] || {
-				printf "ERROR: Cannot find HOSTDIR "
-				printf "'%s': No such file or directory.\n" \
-					"$OPTARG"
-				exit 1
-			}
-			HOSTDIR="$OPTARG"
-			shift; shift
-			;;
-		\?)
-			printf "%s\n" "$USAGE"
+	a)
+		CFG_CROSS="-a $OPTARG"
+		case "$OPTARG" in
+			arm*) CROSS_ARCH=armv6l;;
+			*) CROSS_ARCH="$OPTARG";;
+		esac
+		shift 2
+		;;
+	v)
+		printf "xbps-bulk version $VERSION\n"
+		exit 0
+		;;
+	C)
+		rm -rf tobuild built
+		rm -f *.txt Makefile
+		exit 0
+		;;
+	c)
+		[ -f $OPTARG ] || {
+			printf "ERROR: Cannot find config file "
+			printf "'%s': No such file or directory.\n" "$OPTARG"
 			exit 1
-			;;
-	esac
+		}
+		CFG="$OPTARG"
+		shift 2
+		;;
+	d)
+		[ -d $OPTARG ] || {
+			printf "ERROR: Cannot find DISTDIR "
+			printf "'%s': No such file or directory.\n" "$OPTARG"
+			exit 1
+		}
+		DISTDIR="$OPTARG"
+		shift 2
+		;;
+	m)
+		[ -d $OPTARG ] || {
+			printf "ERROR: Cannot find MASTERDIR "
+			printf "'%s': No such file or directory.\n" "$OPTARG"
+			exit 1
+		}
+		MASTERDIR="$OPTARG"
+		shift 2
+		;;
+	h)
+		[ -d $OPTARG ] || {
+			printf "ERROR: Cannot find HOSTDIR "
+			printf "'%s': No such file or directory.\n" "$OPTARG"
+			exit 1
+		}
+		HOSTDIR="$OPTARG"
+		shift 2
+		;;
+	\?)
+		printf "%s\n" "$USAGE"
+		exit 1
+		;;
+esac
 done
 
 if [ -z "$CFG" ]; then
@@ -116,9 +128,13 @@ done
 SRCPKGS=$DISTDIR/srcpkgs
 XBPS_SRCPKGDIR=$SRCPKGS
 
-XSC="xbps-src -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
+XSC="xbps-src $CFG_CROSS -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
 
-RCV_CMD_LINE="$RCV --distdir=${DISTDIR} ${*}"
+if [ -n "$CFG_CROSS" ]; then
+	CROSS_ARCH="env -i XBPS_TARGET_ARCH=$CROSS_ARCH"
+fi
+
+RCV_CMD_LINE="$CROSS_ARCH $RCV --distdir=${DISTDIR} ${*}"
 printf "INFO: Getting list of updates, please wait...\n"
 printf "INFO: Running '$RCV_CMD_LINE'...\n"
 
@@ -162,7 +178,7 @@ getlink() {
 
 printf "INFO: Generating a proper list (without subpkgs)...\n"
 for tb in $_TOBUILD; do
-		concat "`getlink $tb`"
+	concat "`getlink $tb`"
 done
 
 printf "INFO: Removing old Makefile (if any)...\n"
