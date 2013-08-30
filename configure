@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ## TODO: have ability to set stuff on cmdline for xbps-repo-checkvers, cfg, etc
 VERSION=0.0.0
 
@@ -140,8 +140,11 @@ printf "INFO: Getting list of updates, please wait...\n"
 printf "INFO: Running '$RCV_CMD_LINE'...\n"
 
 [ -f $RCV_F ] && _append="-a"
-#$RCV --distdir=${DISTDIR} ${*} | tee ${_append} $RCV_F
 $RCV_CMD_LINE | tee ${_append} $RCV_F
+if [ 0 -ne ${PIPESTATUS[0]} ]; then
+	printf "ERROR: xbps-repo-checkvers exited with an error: %d\n" $?
+	exit 1;
+fi
 grep pkgname $RCV_F | awk '{ print $2 }' > pkgs.txt
 
 printf "INFO: Creating source targets...\n"
