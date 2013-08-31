@@ -138,7 +138,7 @@ printf "INFO: Running '$RCV_CMD_LINE'...\n"
 [ -f $RCV_F ] && _append="-a"
 $RCV_CMD_LINE | tee ${_append} $RCV_F
 if [ 0 -ne ${PIPESTATUS[0]} ]; then
-	printf "ERROR: xbps-repo-checkvers exited with an error: %d\n" $?
+	printf "ERROR: xbps-repo-checkvers exited with an error: %d\n" ${PIPESTATUS[0]}
 	exit 1
 fi
 grep pkgname $RCV_F | awk '{ print $2 }' > pkgs.txt
