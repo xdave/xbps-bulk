@@ -35,7 +35,6 @@ while getopts a:Cc:d:m:h:v OPT; do
 			arm*) CROSS_ARCH=armv6l;;
 			*) CROSS_ARCH="$OPTARG";;
 		esac
-		shift 2
 		;;
 	v)
 		printf "xbps-bulk version $VERSION\n"
@@ -53,7 +52,6 @@ while getopts a:Cc:d:m:h:v OPT; do
 			exit 1
 		}
 		CFG="$OPTARG"
-		shift 2
 		;;
 	d)
 		[ -d $OPTARG ] || {
@@ -62,7 +60,6 @@ while getopts a:Cc:d:m:h:v OPT; do
 			exit 1
 		}
 		DISTDIR="$OPTARG"
-		shift 2
 		;;
 	m)
 		[ -d $OPTARG ] || {
@@ -71,7 +68,6 @@ while getopts a:Cc:d:m:h:v OPT; do
 			exit 1
 		}
 		MASTERDIR="$OPTARG"
-		shift 2
 		;;
 	h)
 		[ -d $OPTARG ] || {
@@ -80,14 +76,14 @@ while getopts a:Cc:d:m:h:v OPT; do
 			exit 1
 		}
 		HOSTDIR="$OPTARG"
-		shift 2
 		;;
 	\?)
 		printf "%s\n" "$USAGE"
 		exit 1
 		;;
-esac
+	esac
 done
+shift $(($OPTIND - 1))
 
 if [ -z "$CFG" ]; then
 	if [ -f "/etc/xbps/xbps-src.conf" ]; then
@@ -143,7 +139,7 @@ printf "INFO: Running '$RCV_CMD_LINE'...\n"
 $RCV_CMD_LINE | tee ${_append} $RCV_F
 if [ 0 -ne ${PIPESTATUS[0]} ]; then
 	printf "ERROR: xbps-repo-checkvers exited with an error: %d\n" $?
-	exit 1;
+	exit 1
 fi
 grep pkgname $RCV_F | awk '{ print $2 }' > pkgs.txt
 
