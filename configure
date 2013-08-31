@@ -128,12 +128,12 @@ XBPS_SRCPKGDIR=$SRCPKGS
 XSC="xbps-src $CFG_CROSS -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
 
 if [ -n "$CFG_CROSS" ]; then
-	CROSS_ARCH="env -i XBPS_TARGET_ARCH=$CROSS_ARCH"
+	export XBPS_TARGET_ARCH=$CROSS_ARCH
 fi
 
-RCV_CMD_LINE="$CROSS_ARCH $RCV --distdir=${DISTDIR} ${*}"
+RCV_CMD_LINE="$RCV --distdir=${DISTDIR} ${*}"
 printf "INFO: Getting list of updates, please wait...\n"
-printf "INFO: Running '$RCV_CMD_LINE'...\n"
+printf "INFO: Running '$RCV_CMD_LINE' (${CROSS_ARCH:-native}) ...\n"
 
 [ -f $RCV_F ] && _append="-a"
 $RCV_CMD_LINE | tee ${_append} $RCV_F
