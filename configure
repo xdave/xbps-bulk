@@ -61,7 +61,7 @@ while getopts a:Cc:d:Nm:h:v OPT; do
 		}
 		DISTDIR="$OPTARG"
 		;;
-	N)	CFG_LOCAL=1;;
+	N)	CFG_LOCAL="-N";;
 	m)
 		[ -d $OPTARG ] || {
 			printf "ERROR: Cannot find MASTERDIR "
