@@ -16,7 +16,7 @@ RCV=`which xbps-repo-checkvers 2>/dev/null`
 RCV_F="repo-checkvers.txt"
 TOBUILD=
 _TOBUILD=
-USAGE="Usage: $0 [-a cross-arch] [-C] [c|d|m|h arg]\" ]"
+USAGE="Usage: $0 [-a cross-arch] [-CN] [c|d|m|h arg]\" ]"
 
 [ -f $RCV ] || {
 	printf "ERROR: The 'xbps-repo-checkvers' was not found in the PATH.\n"
@@ -26,7 +26,7 @@ USAGE="Usage: $0 [-a cross-arch] [-C] [c|d|m|h arg]\" ]"
 	exit 1
 }
 
-while getopts a:Cc:d:m:h:v OPT; do
+while getopts a:Cc:d:Nm:h:v OPT; do
 	case "$OPT" in
 	a)
 		CFG_CROSS="-a $OPTARG"
@@ -61,6 +61,7 @@ while getopts a:Cc:d:m:h:v OPT; do
 		}
 		DISTDIR="$OPTARG"
 		;;
+	N)	CFG_LOCAL=1;;
 	m)
 		[ -d $OPTARG ] || {
 			printf "ERROR: Cannot find MASTERDIR "
@@ -125,7 +126,7 @@ done
 SRCPKGS=$DISTDIR/srcpkgs
 XBPS_SRCPKGDIR=$SRCPKGS
 
-XSC="xbps-src $CFG_CROSS -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
+XSC="xbps-src $CFG_CROSS $CFG_LOCAL -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
 
 if [ -n "$CFG_CROSS" ]; then
 	export XBPS_TARGET_ARCH=$CROSS_ARCH
