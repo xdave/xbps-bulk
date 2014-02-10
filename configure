@@ -36,6 +36,10 @@ while getopts a:Cc:d:Nm:h:v OPT; do
 				unset CFG_CROSS CROSS_ARCH
 				export XBPS_ARCH=${OPTARG#native-}
 				;;
+			armv6hf) CROSS_ARCH="armv6l";;
+			armv6hf-musl) CROSS_ARCH="armv6l-musl";;
+			armv7) CROSS_ARCH="armv7l";;
+			armv7-musl) CROSS_ARCH="armv7l-musl";;
 			*) CROSS_ARCH="$OPTARG";;
 		esac
 		;;
