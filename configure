@@ -38,8 +38,8 @@ while getopts a:Cc:d:Nm:h:v OPT; do
 				;;
 			armv6hf) CROSS_ARCH="armv6l";;
 			armv6hf-musl) CROSS_ARCH="armv6l-musl";;
-			armv7) CROSS_ARCH="armv7l";;
-			armv7-musl) CROSS_ARCH="armv7l-musl";;
+			armv7|armv7hf) CROSS_ARCH="armv7l";;
+			armv7-musl|armv7hf-musl) CROSS_ARCH="armv7l-musl";;
 			*) CROSS_ARCH="$OPTARG";;
 		esac
 		;;
