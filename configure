@@ -139,7 +139,7 @@ if [ -n "$CFG_CROSS" ]; then
 	export XBPS_TARGET_ARCH=$CROSS_ARCH
 fi
 
-RCV_CMD_LINE="$RCV --distdir=${DISTDIR} ${*}"
+RCV_CMD_LINE="$RCV -d ${DISTDIR} ${*}"
 printf "INFO: Getting list of updates, please wait...\n"
 printf "INFO: Running '$RCV_CMD_LINE' (${CROSS_ARCH:-native}) ...\n"
 
