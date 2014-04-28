@@ -1,8 +1,6 @@
 #!/bin/bash
-## TODO: have ability to set stuff on cmdline for xbps-repo-checkvers, cfg, etc
 VERSION=0.0.0
 
-CFG=
 CFG_CMDLINE=
 CFG_CROSS=
 CROSS_ARCH=
@@ -12,17 +10,14 @@ HOSTDIR=
 SRCPKGS=
 XSC=
 _append=""
-RCV=`which xbps-repo-checkvers 2>/dev/null`
+RCV=`command -v xbps-checkvers 2>/dev/null`
 RCV_F="repo-checkvers.txt"
 TOBUILD=
 _TOBUILD=
-USAGE="Usage: $0 [-a cross-arch] [-CN] [c|d|m|h arg]\" ]"
+USAGE="Usage: $0 [-a cross-arch] [-CN] [-d|-m|-h dir]"
 
 [ -f $RCV ] || {
-	printf "ERROR: The 'xbps-repo-checkvers' was not found in the PATH.\n"
-	printf "Please install it with:\n\n"
-	printf "\t $ xbps-install -Sy install xbps-src-utils\n\n"
-	printf "... and then run this thing again. :)\n"
+	printf "ERROR: The 'xbps-checkvers' was not found in the PATH.\n"
 	exit 1
 }
 
@@ -51,14 +46,6 @@ while getopts a:Cc:d:Nm:h:v OPT; do
 		rm -rf tobuild built
 		rm -f *.txt Makefile
 		exit 0
-		;;
-	c)
-		[ -f $OPTARG ] || {
-			printf "ERROR: Cannot find config file "
-			printf "'%s': No such file or directory.\n" "$OPTARG"
-			exit 1
-		}
-		CFG="$OPTARG"
 		;;
 	d)
 		[ -d $OPTARG ] || {
@@ -93,62 +80,28 @@ while getopts a:Cc:d:Nm:h:v OPT; do
 done
 shift $(($OPTIND - 1))
 
-if [ -z "$CFG" ]; then
-	if [ -f "${HOME}/.xbps-src.conf" ]; then
-		CFG="${HOME}/.xbps-src.conf"
-	elif [ -f "/etc/xbps/xbps-src.conf" ]; then
-		CFG="/etc/xbps/xbps-src.conf"
-	elif [ -f "/usr/local/etc/xbps/xbps-src.conf" ]; then
-		CFG="/usr/local/etc/xbps/xbps-src.conf"
-	else
-		printf "WARNING: No xbps-src configuration "
-		printf "found in the default directories!\n"
-	fi
-fi
-
-test $CFG && {
-	printf "INFO: Loading xbps-src config '$CFG'...\n"
-	. $CFG
-	CFG_CMDLINE="-c $CFG"
-	test $DISTDIR   || DISTDIR=$XBPS_DISTDIR
-	test $MASTERDIR || MASTERDIR=$XBPS_MASTERDIR
-	test $HOSTDIR   || HOSTDIR=$XBPS_HOSTDIR
-	test $SRCPKGS   || SRCPKGS=$XBPS_DISTDIR/srcpkgs
-
-	# if its not defined on cmd line OR in config file.
-	test $HOSTDIR   || HOSTDIR=$MASTERDIR/host
-}
-
-# NO config file, and no cmdline arguments
-for d in $DISTDIR $MASTERDIR $HOSTDIR ; do
-	if [ ! $d ]; then
-		printf "ERROR: You have no xbps-src configuration file AND you\n"
-		printf "have not provided any info manually via command-line\n"
-		printf "switch(s)! Aborting.\n"
-		printf "$USAGE\n"
-		exit 1
-	else
-		printf "INFO: Using '%s'\n" "$d"
-	fi
-done
+# Assign defaults
+: ${DISTDIR:=$HOME/xbps-packages}
+: ${MASTERDIR:=$DISTDIR/masterdir}
+: ${HOSTDIR:=$MASTERDIR/host}
 
 SRCPKGS=$DISTDIR/srcpkgs
 XBPS_SRCPKGDIR=$SRCPKGS
 
-XSC="xbps-src $CFG_CROSS $CFG_LOCAL -L $CFG_CMDLINE -D $DISTDIR -m $MASTERDIR -H $HOSTDIR"
+XSC="$DISTDIR/xbps-src $CFG_CROSS $CFG_LOCAL -L $CFG_CMDLINE -m $MASTERDIR -H $HOSTDIR"
 
 if [ -n "$CFG_CROSS" ]; then
 	export XBPS_TARGET_ARCH=$CROSS_ARCH
 fi
 
-RCV_CMD_LINE="$RCV -d ${DISTDIR} ${*}"
+RCV_CMD_LINE="$RCV --distdir=${DISTDIR} ${*}"
 printf "INFO: Getting list of updates, please wait...\n"
 printf "INFO: Running '$RCV_CMD_LINE' (${CROSS_ARCH:-native}) ...\n"
 
 [ -f $RCV_F ] && _append="-a"
 $RCV_CMD_LINE | tee ${_append} $RCV_F
 if [ 0 -ne ${PIPESTATUS[0]} ]; then
-	printf "ERROR: xbps-repo-checkvers exited with an error: %d\n" ${PIPESTATUS[0]}
+	printf "ERROR: xbps-checkvers exited with an error: %d\n" ${PIPESTATUS[0]}
 	exit 1
 fi
 grep pkgname $RCV_F | awk '{ print $2 }' > pkgs.txt

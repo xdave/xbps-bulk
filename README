@@ -3,7 +3,7 @@ into account inter-dependencies between all of the packages in the set.
 
 It gets a list of pkgs that need to be rebuilt from running:
 
-	xbps-repo-checkvers
+	xbps-checkvers
 
 Then, it finds all of the dependencies of each package in the list and adds
 Make rules for them, if those dependencies are in the same list.
@@ -12,7 +12,7 @@ To use it, type:
 
 	./configure
 
-This generates a 'repo-checkvers.txt' file with the output of 'xbps-repo-checkvers'.
+This generates a 'repo-checkvers.txt' file with the output of 'xbps-checkvers'.
 
 If you run this again, it will have no effect until you delete that txt file, or
 change the repo-checkvers.txt file to have a different set than it did before.
