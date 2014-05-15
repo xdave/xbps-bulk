@@ -26,11 +26,11 @@ while getopts a:Cc:d:Nm:h:v OPT; do
 	a)
 		CFG_CROSS="-a $OPTARG"
 		case "$OPTARG" in
-			native) unset CFG_CROSS CROSS_ARCH;;
-			native-*-musl)
+			native-*-musl|native-*)
 				unset CFG_CROSS CROSS_ARCH
 				export XBPS_ARCH=${OPTARG#native-}
 				;;
+			native) unset CFG_CROSS CROSS_ARCH;;
 			armv6hf) CROSS_ARCH="armv6l";;
 			armv6hf-musl) CROSS_ARCH="armv6l-musl";;
 			armv7|armv7hf) CROSS_ARCH="armv7l";;
