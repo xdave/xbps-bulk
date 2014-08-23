@@ -83,7 +83,7 @@ shift $(($OPTIND - 1))
 # Assign defaults
 : ${DISTDIR:=$HOME/xbps-packages}
 : ${MASTERDIR:=$DISTDIR/masterdir}
-: ${HOSTDIR:=$MASTERDIR/host}
+: ${HOSTDIR:=$DISTDIR/hostdir}
 
 SRCPKGS=$DISTDIR/srcpkgs
 XBPS_SRCPKGDIR=$SRCPKGS
