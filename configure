@@ -160,7 +160,7 @@ printf "print_pkgs:\n"						>> Makefile
 printf "\t@echo \$(PKGS)\n\n"					>> Makefile
 printf "built/%%: tobuild/%%\n"					>> Makefile
 printf "\t@echo \"[xbps-src]\t\${@F}\"\n"			>> Makefile
-printf "\t@$XSC build-pkg \${@F}\n"				>> Makefile
+printf "\t@$XSC pkg \${@F}\n"					>> Makefile
 printf "\t@touch \$@\n"						>> Makefile
 printf "\t@rm tobuild/\${@F}\n\n"				>> Makefile
 
